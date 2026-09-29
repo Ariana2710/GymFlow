@@ -19,7 +19,7 @@
       <a href="dashboard.html" class="nav-item active">Dashboard</a>
       <a href="clases.html" class="nav-item">Gestión de Clases</a>
       <a href="reportes.html" class="nav-item">Reportes</a>
-      <a href="index.html" class="nav-item logout">Cerrar sesión</a>
+      <a href="#" class="nav-item logout" id="logoutBtn">Cerrar sesión</a>
     </nav>
 
     <footer class="sidebar-footer">
@@ -31,7 +31,7 @@
      <header class="topbar">
   <h2>Panel de Control — GYM FLOW</h2>
   <div class="top-actions">
-    <span class="user-chip">Administrador</span>
+    <span class="user-chip" id="userChip">Administrador</span>
   </div>
 </header>
 
@@ -139,5 +139,31 @@
       <small>GYM FLOW — Panel de Control • Proyecto académico.</small>
     </footer>
   </main>
+  <script>
+    const token = localStorage.getItem('token');
+    const usuarioGuardado =localStorage.getItem('usuario');
+
+    if (!token) {
+      window.location.href = 'login.html';
+    }
+
+    if (usuarioGuardado) {
+      const usuario = JSON.parse(usuarioGuardado);
+      const userChip = document.getElementById('userChip');
+      if (userChip && usuario.nombre) {
+        userChip.textContent = usuario.nombre + ' (' + (usuario.rol || 'Admin') +')';
+      }
+    }
+    const btnLogout = document.getElementById('logoutBtn');
+    if (btnLogout) {
+      btnLogout.addEventListener('click', (e) => {
+        e.preventDefault();
+        localStorage.removeItem('token');
+        localStorage.removeItem('usuario');
+        window.location.href = 'login.html';
+      });
+    }
+
+  </script>
 </body>
 </html>
