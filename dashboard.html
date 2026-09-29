@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GYM FLOW — Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+
+<body class="dashboard-body">
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="img/logo.jpg" alt="GYM FLOW" class="brand-logo" />
+      <span>GYM FLOW</span>
+    </div>
+
+    <nav class="nav">
+      <a href="dashboard.html" class="nav-item active">Dashboard</a>
+      <a href="clases.html" class="nav-item">Gestión de Clases</a>
+      <a href="reportes.html" class="nav-item">Reportes</a>
+      <a href="index.html" class="nav-item logout">Cerrar sesión</a>
+    </nav>
+
+    <footer class="sidebar-footer">
+      <small>Panel de Control — GYM FLOW</small>
+    </footer>
+  </aside>
+
+  <main class="main">
+     <header class="topbar">
+  <h2>Panel de Control — GYM FLOW</h2>
+  <div class="top-actions">
+    <span class="user-chip">Administrador</span>
+  </div>
+</header>
+
+
+    <section class="content">
+    
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <h3>Aforo actual</h3>
+          <div class="metric-number">78 <span>de 100</span></div>
+          <p class="muted">Nivel: <strong>Alto</strong></p>
+        </div>
+
+        <div class="metric-card">
+          <h3>Clases en sala</h3>
+          <div class="metric-number">3 <span>en curso</span></div>
+          <p class="muted">Próxima: Funcional 19:00 (28/30)</p>
+        </div>
+
+        <div class="metric-card">
+          <h3>Reservas hoy</h3>
+          <div class="metric-number">45 <span>reservas</span></div>
+          <p class="muted">Capacidad restante: 22</p>
+        </div>
+
+        <div class="metric-card">
+          <h3>Staff conectado</h3>
+          <div class="metric-number">4 <span>online</span></div>
+          <p class="muted">Recepción y 2 instructores</p>
+        </div>
+      </div>
+
+     
+      <section class="panel">
+        <div class="panel-header">
+          <h3>Próximas Clases</h3>
+          <a class="link-btn" href="clases.html">Ver todas</a>
+        </div>
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>Clase</th>
+              <th>Instructor</th>
+              <th>Cupos</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>18:00</td>
+              <td>Funcional</td>
+              <td>María López</td>
+              <td>28 / 30</td>
+              <td><button class="btn small">Editar</button> <button class="btn small ghost">Eliminar</button></td>
+            </tr>
+            <tr>
+              <td>19:00</td>
+              <td>Yoga</td>
+              <td>Carlos P.</td>
+              <td>12 / 20</td>
+              <td><button class="btn small">Editar</button> <button class="btn small ghost">Eliminar</button></td>
+            </tr>
+            <tr>
+              <td>20:00</td>
+              <td>HIIT</td>
+              <td>Lucía O.</td>
+              <td>15 / 20</td>
+              <td><button class="btn small">Editar</button> <button class="btn small ghost">Eliminar</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      
+      <section class="panel three-cols">
+        <div class="panel-col">
+          <h4>Clases más populares</h4>
+          <ol class="muted">
+            <li>Funcional — 320 inscripciones</li>
+            <li>HIIT — 290 inscripciones</li>
+            <li>Yoga — 180 inscripciones</li>
+          </ol>
+        </div>
+
+        <div class="panel-col">
+          <h4>Días con más asistencia</h4>
+          <ol class="muted">
+            <li>Martes — 420</li>
+            <li>Jueves — 400</li>
+            <li>Sábado — 350</li>
+          </ol>
+        </div>
+
+        <div class="panel-col">
+          <h4>Acciones rápidas</h4>
+          <button class="btn">Crear horario</button>
+          <button class="btn ghost">Generar reporte</button>
+        </div>
+      </section>
+    </section>
+
+    <footer class="site-footer">
+      <small>GYM FLOW — Panel de Control • Proyecto académico.</small>
+    </footer>
+  </main>
+</body>
+</html>
