@@ -10,7 +10,7 @@
 <body class="dashboard-page">
   <aside class="sidebar">
     <div class="brand">
-      <img src="img/logo.jpg.jpg" alt="GYM FLOW" class="brand-logo" />
+      <img src="img/logo.jpg." alt="GYM FLOW" class="brand-logo" />
       <span>GYM FLOW</span>
     </div>
 
@@ -22,12 +22,53 @@
     </nav>
   </aside>
 
-  <div class="main">
+  <div class="main" style="margin-left: 260px;">
     <header class="topbar">
       <h2>Gestión de Clases</h2>
     </header>
 
     <section class="content">
+      <section class="panel">
+       <div class="panel-header">
+        <h3>Nueva Clase</h3>
+
+       </div>
+       <form id="formClase" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; padding: 15px 0;">
+
+        <div style="display: flex; flex-direction: column;">
+
+          <label style="font-size: 13px; margin-bottom: 4px; font-weight: bold;">Día</label>
+
+          <input type="text" id="inputDia" placeholder="Ej: Lunes" required style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px;">
+        </div>
+        <div style="display: flex; flex-direction: column;">
+
+          <label style="font-size: 13px; margin-bottom: 4px; font-weight: bold;">Hora</label>
+
+          <input type="text" id="inputHora" placeholder="Ej: 19:30" required style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px">
+
+        </div>
+
+        <div style="display: flex; flex-direction: column;">
+
+          <label style="font-size: 13px; margin-bottom: 4px; font-weight: bold;">Clase</label>
+
+          <input type="text" id="inputNombre" placeholder="Ej: Spinning" required style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px;">
+        </div>
+
+        <div style="display: flex; flex-direction: column;">
+          <label style="font-size: 13px; margin-bottom: 4px; font-weight: bold;">Instructor</label>
+          <input type="text" id="inputInstructor" placeholder="Ej: Laura G." required style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px;">
+        </div>
+
+        <div style="display: flex; flex-direction: column;">
+          <label style="font-size: 13px; margin-bottom: 4px; font-weight: bold;">Cupo Máximo</label>
+
+          <input type="number" id="inputCupo" placeholder="Ej: 25" required style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; width: 100px;">
+        </div>
+        <button type="submit" class="btn">Guardar Clase</button>
+       </form>
+      </section>
       <section class="panel">
         <div class="panel-header">
           <h3>Calendario de clases (estructura)</h3>
@@ -39,19 +80,7 @@
           <thead>
             <tr><th>Día</th><th>Hora</th><th>Clase</th><th>Instructor</th><th>Cupo</th><th>Acciones</th></tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>Lunes</td><td>18:00</td><td>Funcional</td><td>María López</td><td>30</td>
-              <td><button class="btn small">Editar</button> <button class="btn small ghost">Eliminar</button></td>
-            </tr>
-            <tr>
-              <td>Martes</td><td>19:00</td><td>Yoga</td><td>Carlos P.</td><td>20</td>
-              <td><button class="btn small">Editar</button> <button class="btn small ghost">Eliminar</button></td>
-            </tr>
-            <tr>
-              <td>Miércoles</td><td>20:00</td><td>HIIT</td><td>Lucía O.</td><td>20</td>
-              <td><button class="btn small">Editar</button> <button class="btn small ghost">Eliminar</button></td>
-            </tr>
+          <tbody> 
           </tbody>
         </table>
       </section>
@@ -61,5 +90,163 @@
       <small>GYM FLOW — Gestión de Clases.</small>
     </footer>
   </div>
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = 'login.html';
+    }
+    async function cargarClases() {
+      try {
+        const res = await fetch('http://localhost:3000/api/clases');
+        const clases = await res.json();
+
+        const tbody = document.querySelector('.table tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        
+        if (clases.length === 0) {
+          const fila = document.createElement('tr');
+          const celda = document.createElement('td');
+          celda.colSpan = 6;
+          celda.style.textAlign = 'center';
+          celda.textContent = 'No hay clases registradas.';
+          fila.appendChild(celda);
+          tbody.appendChild(fila);
+          return;
+        }
+
+        clases.forEach((c) => {
+          const fila = document.createElement('tr');
+
+          const colDia = document.createElement('td');
+          colDia.textContent = c.dia || '';
+          fila.appendChild(colDia);
+
+          const colHora = document.createElement('td');
+          colHora.textContent = c.hora || '';
+          fila.appendChild(colHora);
+
+          const colNombre = document.createElement('td');
+          colNombre.textContent = c.nombre || '';
+          fila.appendChild(colNombre);
+
+          const colInstructor = document.createElement('td');
+          colInstructor.textContent = c.instructor || '';
+          fila.appendChild(colInstructor);
+
+          const colCupo = document.createElement('td');
+          colCupo.textContent = c.cupoMaximo || 20;
+          fila.appendChild(colCupo);
+
+          const colAcciones = document.createElement('td');
+          const btnEditar = document.createElement('button');
+          btnEditar.className = 'btn small';
+          btnEditar.textContent = 'Editar';
+          btnEditar.addEventListener('click', async () => {
+            const nuevoNombre = prompt('Modificar nombre de la clase:', c.nombre);
+            if (!nuevoNombre) return;
+
+            const nuevoDia = prompt('Modificar día:', c.dia);
+            const nuevaHora = prompt('Modificar hora:', c.hora);
+            const nuevoInstructor = prompt('Modificar instructor:', c.instructor);
+            const nuevoCupo = prompt('Modificar cupo máximo:', c.cupoMaximo);
+
+            try {
+              const res = await fetch('http://localhost:3000/api/clases/' + c._id, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  nombre: nuevoNombre,
+                  dia: nuevoDia || c.dia,
+                  hora: nuevaHora || c.hora,
+                  instructor: nuevoInstructor || c.instructor,
+                  cupoMaximo: Number(nuevoCupo) || c.cupoMaximo
+                })
+              });
+              if (res.ok) {
+                cargarClases();
+              } else {
+                alert('Error al actualizar la clase');
+              }
+            } catch (error) {
+              console.error('Error al editar clase:', error);
+            }
+          });
+          
+          const espacio = document.createTextNode(' ');
+
+          const btnEliminar = document.createElement('button');
+          btnEliminar.className = 'btn small ghost';
+          btnEliminar.textContent = 'Eliminar';
+          btnEliminar.addEventListener('click', async () => {
+            const confirmacion = confirm('¿Estás segura/o de eliminar la clase ' + c.nombre + '?');
+            if (!confirmacion) return;
+            
+            try {
+              const res = await fetch('http://localhost:3000/api/clases/' + c._id, {
+                method: 'DELETE'
+              });
+
+              if (res.ok) {
+                cargarClases();
+              } else {
+                alert('Error al intentar eliminar la clase');
+              }
+            } catch (error) {
+              console.error('Error al borrar clase:', error);
+            }
+
+          });
+          colAcciones.appendChild(btnEditar);
+          colAcciones.appendChild(espacio);
+          colAcciones.appendChild(btnEliminar);
+          fila.appendChild(colAcciones);
+
+          tbody.appendChild(fila);
+        });
+      } catch (err) {
+        console.error('Error al cargar clases:',err);
+      }
+    }
+
+    const form = document.getElementById('formClase');
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const nuevaClase = {
+          dia: document.getElementById('inputDia').value,
+          hora: document.getElementById('inputHora').value,
+          nombre: document.getElementById('inputNombre').value,
+          instructor: document.getElementById('inputInstructor').value,
+          cupoMaximo: Number(document.getElementById('inputCupo').value)
+        };
+
+        try {
+          const res = await fetch('http://localhost:3000/api/clases', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(nuevaClase)
+          });
+
+          if (res.ok) {
+            form.reset();
+            cargarClases();
+          } else {
+            alert('Error al guardar la clase');
+          }
+        } catch (err) {
+          console.error('Error al crear la clase:', err);
+        }
+      });
+    }
+
+    cargarClases();
+  </script>
 </body>
 </html>

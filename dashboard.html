@@ -163,6 +163,71 @@
         window.location.href = 'login.html';
       });
     }
+    async function cargarClases() {
+      try {
+        const respuesta = await fetch('http://localhost:3000/api/clases');
+        const clases = await respuesta.json();
+
+        const tbody = document.querySelector('.table tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        if (clases.length === 0) {
+          const filaVacia = document.createElement('tr');
+          const celdaVacia = document.createElement('td');
+          celdaVacia.colSpan = 5;
+          celdaVacia.style.textAlign = 'center';
+          celdaVacia.textContent = 'No hay clases cargadas';
+          filaVacia.appendChild(celdaVacia);
+          tbody.appendChild(filaVacia);
+          return;
+        }
+
+        clases.forEach((clase) => {
+          const fila = document.createElement('tr');
+
+          const celdaHora = document.createElement('td');
+          celdaHora.textContent = clase.hora || '';
+          fila.appendChild(celdaHora);
+
+          const celdaNombre = document.createElement('td');
+          celdaNombre.textContent = clase.nombre || '';
+          fila.appendChild(celdaNombre);
+
+          const celdaInstructor = document.createElement('td');
+          celdaInstructor.textContent = clase.nombre || '';
+          fila.appendChild(celdaInstructor);
+
+          const celdaCupos = document.createElement('td');
+          const res = clase.reservas || 0;
+          const cup = clase.cupoMaximo || 20;
+          celdaCupos.textContent = res + ' / ' + cup;
+          fila.appendChild(celdaCupos);
+
+          const celdaAcciones = document.createElement('td');
+
+          const btnEditar = document.createElement('button');
+          btnEditar.className = 'btn small';
+          btnEditar.textContent = 'Editar';
+          celdaAcciones.appendChild(btnEditar);
+
+          const espacio = document.createTextNode (' ');
+          celdaAcciones.appendChild(espacio);
+
+          const btnEliminar = document.createElement('button');
+          btnEliminar.className = 'btn small ghost';
+          btnEliminar.textContent = 'Eliminar';
+          celdaAcciones.appendChild(btnEliminar);
+
+          fila.appendChild(celdaAcciones);
+          tbody.appendChild(fila);
+        });
+      } catch (error) {
+        console.error('Error al traer las clases', error);
+      }
+    }
+
+    cargarClases();
 
   </script>
 </body>

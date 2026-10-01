@@ -46,3 +46,29 @@ exports.reservarClase = async (req, res) => {
     res.status(500).json({ msg: 'Error al reservar la clase' });
   }
 };
+exports.eliminarClase = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const claseEliminada = await Clase.findByIdAndDelete(id);
+    if (!claseEliminada) {
+      return res.status(404).json({ msg: 'Clase no encontrada' });
+    }
+    res.json({msg: 'Clase eliminada correctamente' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: 'Error al eliminar la clase'});
+  }
+};
+exports.actualizarClase = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const claseActualizada = await Clase.findByIdAndUpdate(id, req.body, { new: true });
+    if (!claseActualizada) {
+      return res.status(404).json({ msg: 'Clase no encontrada' });
+    }
+    res.json({ msg: 'Clase actualizada correctamente', clase: claseActualizada });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: 'Error al actualizar la clase'});
+  }
+};
