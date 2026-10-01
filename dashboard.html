@@ -228,6 +228,14 @@
     }
 
     cargarClases();
+    document.querySelectorAll('button').forEach(boton => {
+      if (boton.textContent.trim() === 'Crear horario') {
+        boton.onclick = () => window.location.href = 'clases.html';
+      }
+      if (boton.textContent.trim() === 'Generar reporte') {
+        boton.onclick = () => window.location.href = 'reportes.html';
+      }
+    });
 
   </script>
 </body>
