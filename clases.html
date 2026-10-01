@@ -95,6 +95,15 @@
     if (!token) {
       window.location.href = 'login.html';
     }
+    const btnLogout = document.querySelector('.logout');
+    if (btnLogout) {
+      btnLogout.addEventListener('click', (e) => {
+        e.preventDefault();
+        localStorage.removeItem('token');
+        localStorage.removeItem('usuario');
+        window.location.href = 'login.html';
+      });
+    }
     async function cargarClases() {
       try {
         const res = await fetch('http://localhost:3000/api/clases');
@@ -156,7 +165,7 @@
               const res = await fetch('http://localhost:3000/api/clases/' + c._id, {
                 method: 'PUT',
                 headers: {
-                  'Content-Type': 'application/json'
+                  'Content-Type': 'application/json', 'Authorization': 'Bearer' + token,
                 },
                 body: JSON.stringify({
                   nombre: nuevoNombre,
@@ -187,7 +196,8 @@
             
             try {
               const res = await fetch('http://localhost:3000/api/clases/' + c._id, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers:{'Authorization':'Bearer ' + token}
               });
 
               if (res.ok) {
@@ -229,7 +239,7 @@
           const res = await fetch('http://localhost:3000/api/clases', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token,
             },
             body: JSON.stringify(nuevaClase)
           });
