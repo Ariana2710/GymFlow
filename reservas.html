@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GYM FLOW — Mis reservas </title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body class="dashboard-page">
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="img/logo.jpg" alt="GYM FLOW" class="brand-logo" />
+      <span>GYM FLOW</span>
+    </div>
+
+    <nav class="nav">
+      <a href="reservas.html" class="nav-item active"> Reservar Clases </a>
+      <a href="index.html" class="nav-item logout">Cerrar sesión</a>
+    </nav>
+  </aside>
+
+  <div class="main" style="margin-left: 260px;">
+    <header class="topbar">
+      <h2> Reservas de clases </h2>
+    </header>
+
+    <section class="content">
+
+      <section class="panel">
+        <div class="panel-header">
+          <h3>Calendario de clases (estructura)</h3>
+        
+        </div>
+        
+        <table class="table">
+          <thead>
+            <tr><th>Día</th><th>Hora</th><th>Clase</th><th>Instructor</th><th>Cupo</th><th>Acciones</th></tr>
+          </thead>
+          <tbody> 
+          </tbody>
+        </table>
+      </section>
+    </section>
+
+    <footer class="site-footer">
+      <small>GYM FLOW — Gestión de Clases.</small>
+    </footer>
+  </div>
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = 'login.html';
+    }
+    const btnLogout = document.querySelector('.logout');
+    if (btnLogout) {
+      btnLogout.addEventListener('click', (e) => {
+        e.preventDefault();
+        localStorage.removeItem('token');
+        localStorage.removeItem('usuario');
+        window.location.href = 'login.html';
+      });
+    }
+    async function cargarClases() {
+      try {
+        const res = await fetch('http://localhost:3000/api/clases');
+        const clases = await res.json();
+
+        const tbody = document.querySelector('.table tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        
+        if (clases.length === 0) {
+          const fila = document.createElement('tr');
+          const celda = document.createElement('td');
+          celda.colSpan = 6;
+          celda.style.textAlign = 'center';
+          celda.textContent = 'No hay clases registradas.';
+          fila.appendChild(celda);
+          tbody.appendChild(fila);
+          return;
+        }
+
+        clases.forEach((c) => {
+          const fila = document.createElement('tr');
+
+          const colDia = document.createElement('td');
+          colDia.textContent = c.dia || '';
+          fila.appendChild(colDia);
+
+          const colHora = document.createElement('td');
+          colHora.textContent = c.hora || '';
+          fila.appendChild(colHora);
+
+          const colNombre = document.createElement('td');
+          colNombre.textContent = c.nombre || '';
+          fila.appendChild(colNombre);
+
+          const colInstructor = document.createElement('td');
+          colInstructor.textContent = c.instructor || '';
+          fila.appendChild(colInstructor);
+
+          const colCupo = document.createElement('td');
+          colCupo.textContent = c.cupoMaximo || 20;
+          fila.appendChild(colCupo);
+
+          const colAcciones = document.createElement('td');
+          const btnReservar = document.createElement('button');
+          btnReservar.className = 'btn small';
+          btnReservar.textContent = 'Reservar';
+          btnReservar.addEventListener('click', () => {
+            alert('¡Lugar reservado para ' + c.nombre + '!');
+          });
+          colAcciones.appendChild(btnReservar);
+          fila.appendChild(colAcciones);
+
+          tbody.appendChild(fila);
+        });
+      } catch (err) {
+        console.error('Error al cargar clases:',err);
+      }
+    }
+
+    cargarClases();
+  </script>
+</body>
+</html>

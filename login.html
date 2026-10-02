@@ -97,7 +97,12 @@
       }
      localStorage.setItem('token', data.token);
      localStorage.setItem('usuario', JSON.stringify(data.usuario));
+     
+     if (data.usuario && data.usuario.rol === 'admin') {
       window.location.href = 'dashboard.html';
+     } else {
+      window.location.href = 'reservas.html';
+     }
     } catch (error) {
       console.error(error);
       alert('No se pudo conectar con el servidor.');
