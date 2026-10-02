@@ -10,7 +10,7 @@
 <body class="dashboard-page">
   <aside class="sidebar">
     <div class="brand">
-      <img src="img/logo.jpg." alt="GYM FLOW" class="brand-logo" />
+      <img src="img/logo.jpg" alt="GYM FLOW" class="brand-logo" />
       <span>GYM FLOW</span>
     </div>
 
@@ -165,7 +165,7 @@
               const res = await fetch('http://localhost:3000/api/clases/' + c._id, {
                 method: 'PUT',
                 headers: {
-                  'Content-Type': 'application/json', 'Authorization': 'Bearer' + token,
+                  'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token,
                 },
                 body: JSON.stringify({
                   nombre: nuevoNombre,

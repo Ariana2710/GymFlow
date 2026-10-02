@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title> GYM FLOW - Crear cuenta </title>
+        <link rel="stylesheet" href="css/styles.css">
+        <style>
+            body {
+                font-family: 'Poppins', sans-serif;
+                background: linear-gradient(135deg, #00bcd4, #007c91);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+            }
+            .registro-box {
+                background: white;
+                padding: 35px 40px;
+                border-radius: 20px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                text-align: center;
+                width: 350px;
+            }
+            .registro-box img {
+                width: 80px;
+                border-radius: 50%;
+                margin-bottom: 10px;
+            }
+            .registro-box h2 {
+                color: #007c91;
+                margin-bottom: 20px;
+            }
+            input {
+                width: 100%;
+                padding: 10px;
+                margin: 8px 0;
+                border-radius: 8px;
+                border: 1px solid #ccc;
+                font-size: 14px;
+                box-sizing: border-box;
+            }
+            button {
+                background: #00bcd4;
+                color: white;
+                border: none;
+                padding: 10px;
+                width: 100%;
+                border-radius: 8px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: 0.3s;
+                margin-top: 10px;
+            }
+            button:hover {
+                background: #007c91;
+            }
+            .back-link {
+                display: block;
+                margin-top: 15px;
+                font-size: 14px;
+                color: #007c91;
+                text-decoration: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="registro-box">
+            <img src="img/logo.jpg" alt="GYM FLOW">
+            <h2> Crear Cuenta </h2>
+            <form id="registroForm">
+                <input type="text" id="nombre" placeholder="Nombre completo" required>
+                <input type="email" id="email" placeholder="Correo electrónico" required>
+                <input type="password" id="password" placeholder="Contraseña" required>
+                <button type="submit"> Registrarme </button>
+            </form>
+            <a href="login.html" class="back-link"> ¿Ya tenés cuenta? Iniciar sesión </a>
+            <a href="index.html" class="back-link"> Volver al inicio</a>
+        </div>
+
+        <script>
+            const form = document.getElementById('registroForm');
+            form.addEventListener('submit',async (e) => {
+                e.preventDefault();
+                const nombre = document.getElementById('nombre').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+                try {
+                    const respuesta = await fetch('http://localhost:3000/api/auth/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, email, password, rol: 'cliente'})
+                    });
+                    const data = await respuesta.json();
+                    if (!respuesta.ok) {
+                        alert(data.msg || data.mensaje || 'Error al registrar usuario');
+                        return;
+                    }
+
+                    alert('¡Cuenta creada con éxito! Ahora podés iniciar sesión.');
+                    window.location.href = 'login.html';
+                } catch (error) {
+                    console.error(error);
+                    alert('No se pudo conectar con el servidor.');
+                }
+            });
+        </script>
+    </body>
+</html>

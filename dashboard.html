@@ -131,6 +131,7 @@
           <h4>Acciones rápidas</h4>
           <button class="btn">Crear horario</button>
           <button class="btn ghost">Generar reporte</button>
+          <button class="btn" id="btnAbrirModalAdmin" style="margin-top: 8px; background-color:#00bcd4";> Nuevo Administrador </button>
         </div>
       </section>
     </section>
@@ -139,6 +140,19 @@
       <small>GYM FLOW — Panel de Control • Proyecto académico.</small>
     </footer>
   </main>
+  <div id="modalAdmin" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background:rgba(0,0,0,0.55); justify-content:center; align-items:center;">
+    <div style="background:#ffffff; padding: 30px; border-radius: 15px; width: 330px; text-align: center; box-shadow: 0 6px 20px rgba(0,0,0,0.3);">
+      <h3 style="margin-top: 0; color: #007c91;"> Nuevo Administrador </h3>
+      <p style="font-size: 13px; color: #666; margin-bottom: 15px;"> Ingresá los datos del nuevo admin </p>
+      <input type="text" id="adminNombre" placeholder="Nombre completo" style="width: 100%; padding: 10px; margin: 6px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;">
+      <input type="email" id="adminEmail" placeholder="Correo electrónico" style="width:100%; padding: 10px; margin: 6px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;">
+      <input type="password" id="adminPassword" placeholder="Contraseña" style="width:100%; padding: 10px; margin: 6px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;">
+      <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center;">
+        <button id="btnGuardarAdmin" class="btn small" style=" background:#00bcd4; color: #fff; border:none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor:pointer;" > Guardar </button>
+        <button id="btnCancelarAdmin" class="btn small ghost" style="background: #f1f1f1; color: #333; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer;"> Cancelar </button>
+      </div>
+    </div>
+  </div>
   <script>
     const token = localStorage.getItem('token');
     const usuarioGuardado =localStorage.getItem('usuario');
@@ -222,7 +236,7 @@
                 method: 'PUT',
                 headers: {
                   'Content-Type': 'application/json',
-                  'Authorization': 'Bearer' + token
+                  'Authorization': 'Bearer ' + token
                 },
                 body: JSON.stringify({
                   nombre: nuevoNombre,
@@ -252,7 +266,7 @@
               const resDel = await fetch ('http://localhost:3000/api/clases/' + clase._id, {
                 method: 'DELETE',
                 headers: {
-                  'Authorization': 'Bearer' + token
+                  'Authorization': 'Bearer ' + token
                 }
               });
               if (resDel.ok) cargarClases();
@@ -280,6 +294,59 @@
         boton.onclick = () => window.location.href = 'reportes.html';
       }
     });
+    const modalAdmin = document.getElementById('modalAdmin');
+    const btnAbrirModalAdmin = document.getElementById('btnAbrirModalAdmin');
+    const btnCancelarAdmin = document.getElementById('btnCancelarAdmin');
+    const btnGuardarAdmin = document.getElementById('btnGuardarAdmin');
+
+    if (btnAbrirModalAdmin && modalAdmin) {
+      btnAbrirModalAdmin.onclick = () => {
+        modalAdmin.style.display = 'flex';
+      };
+
+    }
+
+    if (btnCancelarAdmin && modalAdmin) {
+      btnCancelarAdmin.onclick = () => {
+        modalAdmin.style.display = 'none';
+      };
+    }
+
+    if (btnGuardarAdmin) {
+      btnGuardarAdmin.onclick = async () => {
+        const nombre = document.getElementById('adminNombre').value.trim();
+        const email = document.getElementById('adminEmail').value.trim();
+        const password = document.getElementById('adminPassword').value;
+
+        if (!nombre || !email || !password) {
+          alert('Por favor, completá todos los campos');
+          return;
+        }
+
+        try {
+          const respuesta = await fetch('http://localhost:3000/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, email, password, rol: 'admin' })
+          });
+          const data = await respuesta.json();
+
+          if (!respuesta.ok) {
+            alert(data.msg || data.mensaje || 'Error al registrar el administrador');
+            return;
+          }
+
+          alert('¡Administrador creado con éxito');
+          modalAdmin.style.display = 'none';
+          document.getElementById('adminNombre').value = '';
+          document.getElementById('adminEmail').value = '';
+          document.getElementById('adminPassword').value = '';
+        } catch (error) {
+          console.error(error);
+          alert('No se pudo conectar con el servidor');
+        }
+      };
+    }
 
   </script>
 </body>
