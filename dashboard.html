@@ -195,7 +195,7 @@
           fila.appendChild(celdaNombre);
 
           const celdaInstructor = document.createElement('td');
-          celdaInstructor.textContent = clase.nombre || '';
+          celdaInstructor.textContent = clase.instructor || '';
           fila.appendChild(celdaInstructor);
 
           const celdaCupos = document.createElement('td');
@@ -209,6 +209,35 @@
           const btnEditar = document.createElement('button');
           btnEditar.className = 'btn small';
           btnEditar.textContent = 'Editar';
+          btnEditar.addEventListener('click', async () => {
+            const nuevoNombre = prompt('Modificar nombre:', clase.nombre);
+            if (!nuevoNombre) return;
+            const nuevoDia = prompt('Modificar dia:', clase.dia);
+            const nuevaHora = prompt('Modificar hora:', clase.hora);
+            const nuevoInstructor = prompt('Modificar instructor:', clase.instructor);
+            const nuevoCupo = prompt('Modificar cupo:', clase.cupoMaximo);
+
+            try {
+              const resPut = await fetch('http://localhost:3000/api/clases/' + clase._id, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer' + token
+                },
+                body: JSON.stringify({
+                  nombre: nuevoNombre,
+                  dia: nuevoDia || clase.dia,
+                  hora: nuevaHora || clase.hora,
+                  instructor: nuevoInstructor || clase.instructor,
+                  cupoMaximo: Number(nuevoCupo) || clase.cupoMaximo
+                })
+              });
+              if (resPut.ok) cargarClases();
+              else alert('Error al editar');
+            } catch (err) {
+              console.error(err);
+            }
+          });
           celdaAcciones.appendChild(btnEditar);
 
           const espacio = document.createTextNode (' ');
@@ -216,7 +245,22 @@
 
           const btnEliminar = document.createElement('button');
           btnEliminar.className = 'btn small ghost';
-          btnEliminar.textContent = 'Eliminar';
+          btnEliminar.textContent = 'Eliminar'; 
+          btnEliminar.addEventListener('click', async () => {
+            if (!confirm('Deseas eliminar la clase' + clase.nombre + '?')) return;
+            try {
+              const resDel = await fetch ('http://localhost:3000/api/clases/' + clase._id, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': 'Bearer' + token
+                }
+              });
+              if (resDel.ok) cargarClases();
+              else alert('Error al eliminar');
+            } catch (err) {
+              console.error(err);
+            }
+          });
           celdaAcciones.appendChild(btnEliminar);
 
           fila.appendChild(celdaAcciones);
