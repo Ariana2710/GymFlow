@@ -37,23 +37,19 @@
         <div class="report-grid">
           <div class="report-card">
             <h4>Top 5 Clases</h4>
-            <ol class="muted">
-              <li>Funcional — 320</li>
-              <li>HIIT — 290</li>
-              <li>Yoga — 180</li>
-              <li>Spinning — 160</li>
-              <li>Pilates — 120</li>
+            <ol class="muted" id="listaTop">
             </ol>
           </div>
 
           <div class="report-card">
             <h4>Asistencia por día</h4>
-            <p class="muted">Gráfico simulado (aquí integraría una librería si fuera dinámico).</p>
+            <p class="muted" id="listaDias" style="list-style: none; padding-left: 0; "></p>
           </div>
 
           <div class="report-card">
             <h4>Ocupación promedio</h4>
-            <p class="muted">Promedio mensual: 68%.</p>
+            <p class="muted"> Total clases: <strong id="totalClases"> 0 </strong> </p>
+            <p class="muted"> Cupos totales: <strong id="totalCupos"> 0 </strong></p>
           </div>
         </div>
       </section>
@@ -68,6 +64,48 @@
   if (!token) {
     window.location.href = 'login.html';
   }
+  async function cargarReportes() {
+    try {
+      const res = await fetch('http://localhost:3000/api/clases');
+      const clases = await res.json();
+      const listaTop = document.getElementById('listaTop');
+      const listaDias = document.getElementById('listaDias');
+      const totalClases = document.getElementById('totalClases');
+      const totalCupos = document.getElementById('totalCupos');
+
+      if (!clases || clases.length === 0) {
+        listaTop.innerHTML = '<li> No hay clases cargadas </li>';
+        return;
+      }
+
+      totalClases.textContent = clases.length;
+      const sumaCupos = clases.reduce((acc, c) => acc + (Number(c.cupoMaximo) || 0), 0);
+      totalCupos.textContent = sumaCupos;
+
+      listaTop.innerHTML = '';
+      const ordenadas = [...clases].sort((a, b) => (b.cupoMaximo || 0) - (a.cupoMaximo || 0));
+      ordenadas.slice(0, 5).forEach((c) => {
+        const li = document.createElement('li');
+        li.textContent = c.nombre + ' (' + (c.instructor || 'Staff') + ') - ' + (c.cupoMaximo || 0) + 'cupos';
+        listaTop.appendChild(li);
+      });
+
+      const diasConteo = {};
+      clases.forEach((c) => {
+        const d = c.dia ? c.dia.trim() : 'Sin definir';
+        diasConteo[d] = (diasConteo[d] || 0) + 1;
+      });
+
+      listaDias.innerHTML = '';
+      for (const [dia, cant] of Object.entries(diasConteo)) {
+        const li = document.createElement('li');
+        li.textContent = dia + ': ' + cant + ' clases';
+        listaDias.appendChild(li);
+      }
+    } catch (err) {
+      console.error('Error al cargar resportes:', err);
+    }
+  } cargarReportes();
  </script>
 </body>
 </html>
