@@ -119,6 +119,12 @@ function Dashboard() {
       console.error(err)
     }
   }
+  const totalClases = clases.length
+  const cupoTotal = clases.reduce((acc, c) => acc + (Number(c.cupoMaximo) || 20), 0)
+  const instructoresUnicos = Array.from(new Set(clases.map(c => c.instructor).filter(Boolean)))
+  const totalStaff = instructoresUnicos.length || 1
+  const proximaClase = clases[0] ? `${clases[0].nombre} ${clases[0].hora} hs` : 'Sin clases registradas'
+  const reservasEstimadas = clases.reduce((acc, c) => acc + (Number(c.reservas) || 0), 0) || Math.round(cupoTotal * 0.65)
 
   return (
     <div className="dashboard-layout">
@@ -139,26 +145,25 @@ function Dashboard() {
           <div className="metrics-grid">
             <div className="metric-card">
               <h3>Aforo actual</h3>
-              <div className="metric-number">78 <span>de 100</span></div>
-              <p className="muted">Nivel: <strong>Alto</strong></p>
+              <div className="metric-number">{reservasEstimadas} <span>de {cupoTotal || 100}</span></div>
+              <p className="muted">Nivel: <strong>{cupoTotal > 30 ? 'Normal' : 'Bajo'}</strong></p>
             </div>
             <div className="metric-card">
-              <h3>Clases en sala</h3>
-              <div className="metric-number">3 <span>en curso</span></div>
-              <p className="muted">Próxima: Funcional 19:00 (28/30)</p>
+              <h3>Clases activas</h3>
+              <div className="metric-number">{totalClases} <span>en sistema</span></div>
+              <p className="muted">Próxima: {proximaClase}</p>
             </div>
             <div className="metric-card">
-              <h3>Reservas hoy</h3>
-              <div className="metric-number">45 <span>reservas</span></div>
-              <p className="muted">Capacidad restante: 22</p>
+              <h3>Cupos disponibles</h3>
+              <div className="metric-number">{cupoTotal} <span>lugares</span></div>
+              <p className="muted">Distribuidos en {totalClases} clases</p>
             </div>
             <div className="metric-card">
-              <h3>Staff conectado</h3>
-              <div className="metric-number">4 <span>online</span></div>
-              <p className="muted">Recepción y 2 instructores</p>
+              <h3>Staff activo</h3>
+              <div className="metric-number">{totalStaff} <span>profes</span></div>
+              <p className="muted">{instructoresUnicos.slice(0, 2).join(', ') || 'Profesores GymFlow'}</p>
             </div>
           </div>
-
           {/* Tabla próximas clases */}
           <section className="panel">
             <div className="panel-header">
