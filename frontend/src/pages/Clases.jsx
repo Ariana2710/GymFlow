@@ -5,12 +5,17 @@ const API = 'http://localhost:3000'
 
 function Clases() {
   const [clases, setClases] = useState([])
-  const [dia, setDia] = useState('')
-  const [hora, setHora] = useState('')
-  const [nombre, setNombre] = useState('')
-  const [instructor, setInstructor] = useState('')
-  const [cupo, setCupo] = useState('')
-  const token = localStorage.getItem('token')
+  const [form, setForm] = useState({ dia: '', hora: '', nombre: '', instructor: '', cupoMaximo: '' })
+  const [editId, setEditId] = useState(null)
+
+  // Estados para el calendario interactivo
+  const [fechaCalendario, setFechaCalendario] = useState(new Date())
+  const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date())
+
+  const diasSemanaNombres = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
+
+  const normalizar = (texto) => 
+    (texto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
 
   const cargarClases = async () => {
     try {
@@ -28,80 +33,85 @@ function Clases() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const nuevaClase = {
-      dia,
-      hora,
-      nombre,
-      instructor,
-      cupoMaximo: Number(cupo)
-    }
     try {
-      const res = await fetch(`${API}/api/clases`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(nuevaClase)
-      })
-      if (res.ok) {
-        setDia(''); setHora(''); setNombre(''); setInstructor(''); setCupo('')
-        cargarClases()
-      } else {
-        alert('Error al guardar la clase')
-      }
-    } catch (err) {
-      console.error('Error al crear la clase:', err)
-    }
-  }
-
-  const handleEditar = async (c) => {
-    const nuevoNombre = prompt('Modificar nombre de la clase:', c.nombre)
-    if (!nuevoNombre) return
-    const nuevoDia = prompt('Modificar día:', c.dia)
-    const nuevaHora = prompt('Modificar hora:', c.hora)
-    const nuevoInstructor = prompt('Modificar instructor:', c.instructor)
-    const nuevoCupo = prompt('Modificar cupo máximo:', c.cupoMaximo)
-
-    try {
-      const res = await fetch(`${API}/api/clases/${c._id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          nombre: nuevoNombre,
-          dia: nuevoDia || c.dia,
-          hora: nuevaHora || c.hora,
-          instructor: nuevoInstructor || c.instructor,
-          cupoMaximo: Number(nuevoCupo) || c.cupoMaximo
+      if (editId) {
+        await fetch(`${API}/api/clases/${editId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form)
         })
-      })
-      if (res.ok) cargarClases()
-      else alert('Error al actualizar la clase')
+        setEditId(null)
+      } else {
+        await fetch(`${API}/api/clases`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form)
+        })
+      }
+      setForm({ dia: '', hora: '', nombre: '', instructor: '', cupoMaximo: '' })
+      cargarClases()
     } catch (err) {
-      console.error('Error al editar clase:', err)
+      console.error('Error al guardar clase:', err)
     }
   }
 
-  const handleEliminar = async (c) => {
-    if (!confirm(`¿Estás segura/o de eliminar la clase ${c.nombre}?`)) return
+  const handleEditar = (clase) => {
+    setEditId(clase._id)
+    setForm({
+      dia: clase.dia || '',
+      hora: clase.hora || '',
+      nombre: clase.nombre || '',
+      instructor: clase.instructor || '',
+      cupoMaximo: clase.cupoMaximo || ''
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleEliminar = async (id) => {
+    if (!window.confirm('¿Seguro que deseas eliminar esta clase?')) return
     try {
-      const res = await fetch(`${API}/api/clases/${c._id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      if (res.ok) cargarClases()
-      else alert('Error al intentar eliminar la clase')
+      await fetch(`${API}/api/clases/${id}`, { method: 'DELETE' })
+      cargarClases()
     } catch (err) {
-      console.error('Error al borrar clase:', err)
+      console.error('Error al eliminar clase:', err)
     }
   }
+
+  // --- NAVEGACIÓN Y CÁLCULO DEL CALENDARIO ---
+  const cambiarMes = (inc) => {
+    setFechaCalendario(new Date(fechaCalendario.getFullYear(), fechaCalendario.getMonth() + inc, 1))
+  }
+
+  const anio = fechaCalendario.getFullYear()
+  const mes = fechaCalendario.getMonth()
+  const nombreMes = fechaCalendario.toLocaleString('es-ES', { month: 'long' })
+  const tituloMesAnio = `${nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)} ${anio}`
+
+  const primerDiaSemana = new Date(anio, mes, 1).getDay()
+  const indiceInicio = (primerDiaSemana + 6) % 7
+  const totalDiasMes = new Date(anio, mes + 1, 0).getDate()
+  const totalDiasMesAnterior = new Date(anio, mes, 0).getDate()
+
+  const diasGrid = []
+  for (let i = indiceInicio - 1; i >= 0; i--) {
+    diasGrid.push({ nro: totalDiasMesAnterior - i, apagado: true })
+  }
+  for (let d = 1; d <= totalDiasMes; d++) {
+    diasGrid.push({ nro: d, apagado: false })
+  }
+  const resto = diasGrid.length % 7
+  if (resto !== 0) {
+    for (let j = 1; j <= (7 - resto); j++) {
+      diasGrid.push({ nro: j, apagado: true })
+    }
+  }
+
+  const diaNombreSeleccionado = diasSemanaNombres[fechaSeleccionada.getDay()]
+  const clasesFiltradas = clases.filter(c => normalizar(c.dia) === normalizar(diaNombreSeleccionado))
 
   return (
     <div className="dashboard-layout">
-      <Sidebar adminLinks />
+      <Sidebar adminLinks={true} />
 
       <div className="main-content">
         <header className="topbar">
@@ -109,80 +119,221 @@ function Clases() {
         </header>
 
         <div className="content-area">
-          {/* Formulario nueva clase */}
-          <section className="panel">
-            <div className="panel-header">
-              <h3>Nueva Clase</h3>
+          {/* FORMULARIO DE NUEVA / EDITAR CLASE */}
+          <section className="panel" style={{ padding: '24px', marginBottom: '24px' }}>
+            <div className="panel-header" style={{ marginBottom: '15px' }}>
+              <h3>{editId ? 'Editar Clase' : 'Nueva Clase'}</h3>
             </div>
-            <form onSubmit={handleSubmit} className="clase-form">
-              <div className="form-field">
-                <label>Día</label>
-                <input type="text" placeholder="Ej: Lunes" value={dia} onChange={e => setDia(e.target.value)} required />
+            <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <label style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '4px' }}>Día</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Lunes"
+                  value={form.dia}
+                  onChange={(e) => setForm({ ...form, dia: e.target.value })}
+                  required
+                  style={{ padding: '8px 12px', border: '1px solid #ccc', borderRadius: '6px' }}
+                />
               </div>
-              <div className="form-field">
-                <label>Hora</label>
-                <input type="text" placeholder="Ej: 19:30" value={hora} onChange={e => setHora(e.target.value)} required />
+
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <label style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '4px' }}>Hora</label>
+                <input
+                  type="text"
+                  placeholder="Ej: 19:30"
+                  value={form.hora}
+                  onChange={(e) => setForm({ ...form, hora: e.target.value })}
+                  required
+                  style={{ padding: '8px 12px', border: '1px solid #ccc', borderRadius: '6px' }}
+                />
               </div>
-              <div className="form-field">
-                <label>Clase</label>
-                <input type="text" placeholder="Ej: Spinning" value={nombre} onChange={e => setNombre(e.target.value)} required />
+
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <label style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '4px' }}>Clase</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Spinning"
+                  value={form.nombre}
+                  onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                  required
+                  style={{ padding: '8px 12px', border: '1px solid #ccc', borderRadius: '6px' }}
+                />
               </div>
-              <div className="form-field">
-                <label>Instructor</label>
-                <input type="text" placeholder="Ej: Laura G." value={instructor} onChange={e => setInstructor(e.target.value)} required />
+
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <label style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '4px' }}>Instructor</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Laura G."
+                  value={form.instructor}
+                  onChange={(e) => setForm({ ...form, instructor: e.target.value })}
+                  required
+                  style={{ padding: '8px 12px', border: '1px solid #ccc', borderRadius: '6px' }}
+                />
               </div>
-              <div className="form-field">
-                <label>Cupo Máximo</label>
-                <input type="number" placeholder="Ej: 25" value={cupo} onChange={e => setCupo(e.target.value)} required style={{ width: '100px' }} />
+
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <label style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '4px' }}>Cupo Máximo</label>
+                <input
+                  type="number"
+                  placeholder="Ej: 25"
+                  value={form.cupoMaximo}
+                  onChange={(e) => setForm({ ...form, cupoMaximo: e.target.value })}
+                  required
+                  style={{ padding: '8px 12px', border: '1px solid #ccc', borderRadius: '6px', width: '100px' }}
+                />
               </div>
-              <button type="submit" className="btn">Guardar Clase</button>
+
+              <button type="submit" className="btn" style={{ padding: '9px 18px' }}>
+                {editId ? 'Guardar Cambios' : 'Guardar Clase'}
+              </button>
+              {editId && (
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={() => {
+                    setEditId(null)
+                    setForm({ dia: '', hora: '', nombre: '', instructor: '', cupoMaximo: '' })
+                  }}
+                  style={{ padding: '9px 18px' }}
+                >
+                  Cancelar
+                </button>
+              )}
             </form>
           </section>
 
-          {/* Tabla de clases */}
-          <section className="panel">
-            <div className="panel-header">
+          {/* CALENDARIO DE CLASES INTERACTIVO */}
+          <section className="panel" style={{ padding: '24px' }}>
+            <div className="panel-header" style={{ marginBottom: '20px' }}>
               <h3>Calendario de clases</h3>
             </div>
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Día</th>
-                  <th>Hora</th>
-                  <th>Clase</th>
-                  <th>Instructor</th>
-                  <th>Cupo</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {clases.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', color: '#777' }}>
-                      No hay clases registradas.
-                    </td>
-                  </tr>
-                ) : clases.map(c => (
-                  <tr key={c._id}>
-                    <td>{c.dia || ''}</td>
-                    <td>{c.hora || ''}</td>
-                    <td>{c.nombre || ''}</td>
-                    <td>{c.instructor || ''}</td>
-                    <td>{c.cupoMaximo || 20}</td>
-                    <td>
-                      <button className="btn small" onClick={() => handleEditar(c)}>Editar</button>
-                      {' '}
-                      <button className="btn small ghost" onClick={() => handleEliminar(c)}>Eliminar</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+            <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap' }}>
+              {/* Calendario visual */}
+              <div style={{
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '16px',
+                padding: '24px',
+                width: '100%',
+                maxWidth: '350px',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.04)',
+                boxSizing: 'border-box'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <span style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#1a202c' }}>
+                    {tituloMesAnio}
+                  </span>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button type="button" onClick={() => cambiarMes(-1)} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', padding: '4px 10px' }}>◀</button>
+                    <button type="button" onClick={() => cambiarMes(1)} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', padding: '4px 10px' }}>▶</button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px', textAlign: 'center', fontWeight: 'bold', fontSize: '0.85rem', marginBottom: '15px', color: '#64748b' }}>
+                  <span>LU</span><span>MA</span><span>MI</span><span>JU</span><span>VI</span><span>SA</span><span>DO</span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px', textAlign: 'center' }}>
+                  {diasGrid.map((dia, idx) => {
+                    const esSeleccionado = !dia.apagado && 
+                      fechaSeleccionada.getFullYear() === anio &&
+                      fechaSeleccionada.getMonth() === mes &&
+                      fechaSeleccionada.getDate() === dia.nro
+
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => !dia.apagado && setFechaSeleccionada(new Date(anio, mes, dia.nro))}
+                        style={{
+                          background: esSeleccionado ? '#00bac6' : 'transparent',
+                          color: dia.apagado ? '#cbd5e1' : (esSeleccionado ? '#ffffff' : '#2d3748'),
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '34px',
+                          height: '34px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: dia.apagado ? 'default' : 'pointer',
+                          fontWeight: esSeleccionado ? 'bold' : 'normal',
+                          outline: 'none',
+                          fontSize: '0.9rem'
+                        }}
+                        disabled={dia.apagado}
+                      >
+                        {dia.nro}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Tarjetas de clases del día con botones Editar y Eliminar */}
+              <div style={{ flex: '1', minWidth: '300px' }}>
+                <h4 style={{ margin: '0 0 16px 0', fontSize: '1.2rem', color: '#1a202c', textTransform: 'capitalize' }}>
+                  Clases para el {diaNombreSeleccionado}, {fechaSeleccionada.getDate()} de {fechaSeleccionada.toLocaleString('es-ES', { month: 'long' })}
+                </h4>
+
+                {clasesFiltradas.length === 0 ? (
+                  <div style={{ padding: '30px', textAlign: 'center', background: '#fcfcfc', border: '1px dashed #e2e8f0', borderRadius: '12px', color: '#718096' }}>
+                    No hay clases registradas para este día.
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
+                    {clasesFiltradas.map(c => (
+                      <div key={c._id} style={{
+                        background: '#fff',
+                        border: '1px solid #e2e8f0',
+                        borderLeft: '5px solid #00bac6',
+                        borderRadius: '12px',
+                        padding: '16px',
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between'
+                      }}>
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <h5 style={{ margin: '0 0 4px 0', fontSize: '1.1rem' }}>{c.nombre}</h5>
+                            <span style={{ fontWeight: 'bold', color: '#4a5568' }}>{c.hora} hs</span>
+                          </div>
+                          <p style={{ margin: '6px 0 2px 0', fontSize: '0.85rem', color: '#718096' }}>👤 Instructor: <strong>{c.instructor}</strong></p>
+                          <p style={{ margin: '0 0 12px 0', fontSize: '0.85rem', color: '#718096' }}>👥 Cupo: <strong>{c.cupoMaximo || 20} personas</strong></p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            type="button"
+                            className="btn small"
+                            onClick={() => handleEditar(c)}
+                            style={{ flex: 1, padding: '6px' }}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            className="btn small ghost"
+                            onClick={() => handleEliminar(c._id)}
+                            style={{ flex: 1, padding: '6px', color: '#e53e3e', borderColor: '#e53e3e' }}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+            </div>
           </section>
         </div>
 
         <footer className="site-footer">
-          <small>GYM FLOW — Gestión de Clases.</small>
+          <small>Panel de Control — GYM FLOW</small>
         </footer>
       </div>
     </div>
